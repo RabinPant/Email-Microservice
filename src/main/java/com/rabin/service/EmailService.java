@@ -3,9 +3,15 @@ package com.rabin.service;
 import com.rabin.DTO.EmailRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
 
 @Service
 public class EmailService {
@@ -25,5 +31,23 @@ public class EmailService {
 
         javaMailSender.send(mailMessage);
         return "email successfully send to:"+request.getToEmail();
+    }
+    public String sendEmailWithAttachement(EmailRequest request) throws MessagingException {
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+        helper.setFrom(sender);
+        helper.setTo(request.getToEmails());
+        helper.setSubject(request.getSubject());
+        helper.setText(request.getMessageBody());
+
+        FileSystemResource file = new FileSystemResource(new File(request.getAttachement()));
+        System.out.println(file.getFilename()+ file);
+        helper.addAttachment(file.getFilename(), file);
+
+        javaMailSender.send(mimeMessage);
+        return "Mail sent successfully with attachment " + file.getFilename();
     }
 }
